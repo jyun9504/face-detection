@@ -6,6 +6,7 @@ import Paper from './components/Paper/Paper';
 import Navigation from './components/Navigation/Navigation';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
+import SignIn from './components/SignIn/SignIn';
 
 const app = new Clarifai.App({
   apiKey: 'a817d514bb4e4018917cb7a66db9819b'
@@ -17,43 +18,24 @@ class App extends React.Component {
     this.state = {
       input: '',
       imageUrl: '',
-      box: {}
+      box: [],
+      route: 'signin'
     }
   }
   calculateFaceLocation = (data) => {
-    data.outputs[0].data.regions.forEach((el, index) => {
+    const inputImg = document.getElementById('input_img');
+    return data.outputs[0].data.regions.map((el, i) => {
       const clarifaiFace = el.region_info.bounding_box;
-      const inputImg = document.getElementById('input_img');
-      const boundingBox = document.createElement('div');
       const width = Number(inputImg.width);
       const height = Number(inputImg.height);
-      const box = {
+      return{
         leftCol: clarifaiFace.left_col * width,
         topRow: clarifaiFace.top_row * height,
         clarifeiWidth: (clarifaiFace.right_col * width) - (clarifaiFace.left_col * width),
-        clarifeiHeight: (clarifaiFace.bottom_row * height) - (clarifaiFace.top_row * height)
+        clarifeiHeight: (clarifaiFace.bottom_row * height) - (clarifaiFace.top_row * height),
+        key: i
       }
-      boundingBox.setAttribute('class', 'bounding-box');
-      boundingBox.style.width = box.clarifeiWidth + 'px';
-      boundingBox.style.height = box.clarifeiHeight + 'px';
-      boundingBox.style.top = box.topRow + 'px';
-      boundingBox.style.left = box.leftCol + 'px';
-      console.log(boundingBox.style)
-      document.getElementById('face_recognition').appendChild(boundingBox);
     })
-    
-    // const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
-    // const inputImg = document.getElementById('input_img');
-    // const width = Number(inputImg.width);
-    // const height = Number(inputImg.height);
-    // return {
-    //   leftCol: clarifaiFace.left_col * width,
-    //   topRow: clarifaiFace.top_row * height,
-    //   clarifeiWidth: (clarifaiFace.right_col * width) - (clarifaiFace.left_col * width),
-    //   clarifeiHeight: (clarifaiFace.bottom_row * height) - (clarifaiFace.top_row * height),
-    //   rightCol: width - (clarifaiFace.right_col * width),
-    //   bottomRow: height - (clarifaiFace.bottom_row * height)
-    // }
   }
   displayFaceBox = (box) => {
     this.setState({box: box})
@@ -71,26 +53,45 @@ class App extends React.Component {
       Clarifai.FACE_DETECT_MODEL,
       this.state.input
     )
-    .then(response => this.calculateFaceLocation(response))
+    .then(response => {
+      if(!response.status.description === 'Ok'){
+        throw Error(response.status);
+      }
+      return this.displayFaceBox(this.calculateFaceLocation(response))
+    })
     .catch(err => console.log(err))
+  }
+  onRouteChange = (route) => {
+    this.setState({route: route})
   }
   render() {
     return (
       <div className="app">
-          <Navigation />
+          <Navigation 
+            onRouteChange={ this.onRouteChange }
+          />
           <Particles
             className="particles"
             params={ particlesOption }
           />
-          <Paper>
-            <ImageLinkForm
-              onInputChange={ this.onInputChange }
-              onDetectSubmit={ this.onDetectSubmit }
-            />
-            <FaceRecognition 
-              imageUrl={ this.state.imageUrl }
-            />
-          </Paper>
+          {
+            this.state.route === 'signin' 
+              ? <Paper>
+                  <SignIn
+                    onRouteChange={ this.onRouteChange }
+                  />
+                </Paper>
+              : <Paper>
+                  <ImageLinkForm
+                    onInputChange={ this.onInputChange }
+                    onDetectSubmit={ this.onDetectSubmit }
+                  />
+                  <FaceRecognition 
+                    imageUrl={ this.state.imageUrl }
+                    box={ this.state.box }
+                  />
+                </Paper>
+          }
       </div>
     );
   }
