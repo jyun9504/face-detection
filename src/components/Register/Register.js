@@ -1,12 +1,16 @@
 import React from 'react';
 
 
-const SignIn = ({ onRouteChange }) => {
+const Register = ({ onRouteChange }) => {
 	return (
 		<main className="pa4 black-80">
       <form className="center">
         <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
-          <legend className="f2 fw6 ph0 mh0 center">Sign In</legend>
+          <legend className="f2 fw6 ph0 mh0 center">Register</legend>
+          <div className="mt3">
+            <label className="db fw6 lh-copy f4" htmlFor="name">Name</label>
+            <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white" type="text" name="name"  id="name" />
+          </div>
           <div className="mt3">
             <label className="db fw6 lh-copy f4" htmlFor="email-address">Email</label>
             <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white" type="email" name="email-address"  id="email-address" />
@@ -18,18 +22,14 @@ const SignIn = ({ onRouteChange }) => {
         </fieldset>
         <div className="">
           <input 
-            onClick={() => onRouteChange('home') }
             className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6 dib" 
             type="submit" 
-            value="Sign in" 
+            value="Register" 
           />
-        </div>
-        <div className="lh-copy mt3">
-          <a href="#0" className="f6 link dim black db" onClick={() => onRouteChange('register') }>Register</a>
         </div>
       </form>
     </main>
 	)
 }
 
-export default SignIn;
+export default Register;

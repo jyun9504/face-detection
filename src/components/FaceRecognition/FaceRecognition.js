@@ -7,13 +7,13 @@ const FaceRecognition = ({ box, imageUrl }) => {
       { 
         box.map(data => {
           return (
-            <div 
+            <div
               className="bounding-box" 
               style={{
-                'width': data.clarifeiWidth, 
-                'height': data.clarifeiHeight, 
-                'top': data.topRow, 
-                'left': data.leftCol
+                width: data.clarifeiWidth, 
+                height: data.clarifeiHeight, 
+                top: data.topRow, 
+                left: data.leftCol,
               }}
               key={ data.key }
             ></div>

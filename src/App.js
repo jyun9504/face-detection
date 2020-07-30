@@ -7,6 +7,7 @@ import Navigation from './components/Navigation/Navigation';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import SignIn from './components/SignIn/SignIn';
+import Register from './components/Register/Register';
 
 const app = new Clarifai.App({
   apiKey: 'a817d514bb4e4018917cb7a66db9819b'
@@ -19,7 +20,8 @@ class App extends React.Component {
       input: '',
       imageUrl: '',
       box: [],
-      route: 'signin'
+      route: 'signin',
+      isSignedIn: false
     }
   }
   calculateFaceLocation = (data) => {
@@ -62,35 +64,50 @@ class App extends React.Component {
     .catch(err => console.log(err))
   }
   onRouteChange = (route) => {
+    if (route === 'home') {
+      this.setState({isSignedIn: true})
+    } else {
+      this.setState({isSignedIn: false})
+    }
     this.setState({route: route})
   }
   render() {
+    const { imageUrl, box, route, isSignedIn } = this.state;
     return (
       <div className="app">
           <Navigation 
             onRouteChange={ this.onRouteChange }
+            isSignedIn={ isSignedIn }
           />
           <Particles
             className="particles"
             params={ particlesOption }
           />
           {
-            this.state.route === 'signin' 
-              ? <Paper>
-                  <SignIn
-                    onRouteChange={ this.onRouteChange }
+            route === 'signin' ? 
+              <Paper>
+                <SignIn
+                  onRouteChange={ this.onRouteChange }
+                />
+              </Paper>
+            : (route === 'register' ?
+                <Paper>
+                  <Register 
+                    onRouterChange={ this.onRouterChange }
                   />
                 </Paper>
-              : <Paper>
+              :
+                <Paper>
                   <ImageLinkForm
                     onInputChange={ this.onInputChange }
                     onDetectSubmit={ this.onDetectSubmit }
                   />
                   <FaceRecognition 
-                    imageUrl={ this.state.imageUrl }
-                    box={ this.state.box }
+                    imageUrl={ imageUrl }
+                    box={ box }
                   />
                 </Paper>
+              )
           }
       </div>
     );
