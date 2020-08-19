@@ -1,6 +1,5 @@
 import React from 'react';
 import Particles from 'react-particles-js';
-import Clarifai from 'clarifai';
 import particlesOption from './assets/particlesOption.js';
 import Paper from './components/Paper/Paper';
 import Navigation from './components/Navigation/Navigation';
@@ -9,20 +8,38 @@ import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import SignIn from './components/SignIn/SignIn';
 import Register from './components/Register/Register';
 
-const app = new Clarifai.App({
-  apiKey: 'a817d514bb4e4018917cb7a66db9819b'
-});
+const initialState = {
+  input: '',
+  imageUrl: '',
+  box: [],
+  route: 'signin',
+  isSignedIn: false,
+  user: {
+    id: '',
+    name: '',
+    email: '',
+    password: '',
+    entries: 0,
+    joined: ''
+  }
+}
 
 class App extends React.Component {
   constructor() {
     super();
-    this.state = {
-      input: '',
-      imageUrl: '',
-      box: [],
-      route: 'signin',
-      isSignedIn: false
-    }
+    this.state = initialState;
+  }
+  loadUser = (user) => {
+    this.setState({
+      user :{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        entries: user.entries,
+        joined: user.joined
+      }
+    })
   }
   calculateFaceLocation = (data) => {
     const inputImg = document.getElementById('input_img');
@@ -51,23 +68,32 @@ class App extends React.Component {
     this.setState({
       imageUrl: this.state.input
     })
-    app.models.predict(
-      Clarifai.FACE_DETECT_MODEL,
-      this.state.input
-    )
+    fetch('https://agile-plains-81939.herokuapp.com/imageurl', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({input: this.state.input})
+    })
+    .then(response => response.json())
     .then(response => {
       if(!response.status.description === 'Ok'){
         throw Error(response.status);
       }
+      fetch('https://agile-plains-81939.herokuapp.com/image', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id: this.state.user.id})
+      })
+      .then(response => response.json())
+      .then(data => {})
       return this.displayFaceBox(this.calculateFaceLocation(response))
     })
     .catch(err => console.log(err))
   }
   onRouteChange = (route) => {
-    if (route === 'home') {
+    if (route === 'signin') {
+      this.setState(initialState)
+    } else if (route === 'home') {
       this.setState({isSignedIn: true})
-    } else {
-      this.setState({isSignedIn: false})
     }
     this.setState({route: route})
   }
@@ -88,12 +114,14 @@ class App extends React.Component {
               <Paper>
                 <SignIn
                   onRouteChange={ this.onRouteChange }
+                  loadUser={ this.loadUser }
                 />
               </Paper>
             : (route === 'register' ?
                 <Paper>
                   <Register 
-                    onRouterChange={ this.onRouterChange }
+                    onRouteChange={ this.onRouteChange }
+                    loadUser={ this.loadUser }
                   />
                 </Paper>
               :
